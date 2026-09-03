@@ -13,7 +13,7 @@
   button { font: inherit; cursor: pointer; }
   input, select, textarea { font: inherit; color: #0f172a; }
   :focus-visible { outline: 2px solid #6366f1; outline-offset: 2px; border-radius: 6px; }
-  #loader { position: fixed; inset: 0; z-index: 9999; background: linear-gradient(135deg, #101a33 0%, #16294f 45%, #123f3a 100%); display: flex; align-items: center; justify-content: center; transition: opacity .5s ease, visibility .5s; }
+  #loader { position: fixed; inset: 0; z-index: 9999; background: linear-gradient(135deg, #101a33 0%, #16294f 45%, #123f3a 100%); display: flex; align-items: center; justify-content: center; transition: opacity .5s ease, visibility 0s linear .5s; pointer-events: none; }
   #loader.done { opacity: 0; visibility: hidden; }
   .loader-inner { text-align: center; color: #fff; }
   .loader-logo { width: 96px; height: 96px; margin: 0 auto 18px; animation: pop .7s cubic-bezier(.2,1.4,.4,1) both, floaty 2.4s ease-in-out .7s infinite; filter: drop-shadow(0 10px 24px rgba(0,0,0,.4)); }
@@ -80,7 +80,10 @@
   .subject-chip .dot { width: 10px; height: 10px; border-radius: 50%; }
   .subject-chip button { border: 0; background: transparent; color: #94a3b8; font-size: 14px; padding: 0 4px; border-radius: 50%; }
   .subject-chip button:hover { color: #e11d48; background: #fef2f2; }
-  .plan-row { display: grid; grid-template-columns: 1.3fr 1.3fr 90px 40px; gap: 10px; align-items: center; margin-bottom: 8px; padding: 8px 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; }
+  .plan-row { display: grid; grid-template-columns: 1.1fr 1.1fr 1.2fr 1fr 80px 36px; gap: 8px; align-items: center; margin-bottom: 8px; padding: 8px 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; }
+  .plan-row .pf-grades { display: flex; gap: 3px; }
+  .plan-row .pf-grades label { display: inline-flex; align-items: center; gap: 2px; font-size: 11px; padding: 2px 5px; border-radius: 4px; cursor: pointer; }
+  .plan-row .pf-grades input { margin: 0; accent-color: #4f46e5; }
   .plan-row select, .plan-row input { border: 1px solid #e2e8f0; background: #fff; border-radius: 7px; padding: 7px 9px; font-size: 13px; }
   .plan-row select:focus, .plan-row input:focus { border-color: #818cf8; box-shadow: 0 0 0 3px rgba(129,140,248,.15); }
   .plan-total { font-size: 12.5px; color: #475569; margin-top: 10px; padding: 8px 12px; background: #f8fafc; border-radius: 8px; }
@@ -153,12 +156,18 @@
     .schedule-wrap { border: 0; box-shadow: none; }
     .lesson { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; animation: tabSlide .4s cubic-bezier(.2,1,.4,1) both; }
+  @keyframes tabSlide { 0% { opacity: 0; transform: translateY(12px); } 100% { opacity: 1; transform: translateY(0); } }
+  .tabs button { transition: color .15s, background .15s; }
+  #dutyGrid table { font-size: 13px; }
+  #dutyGrid input { width: 130px; border: 1px solid #e2e8f0; background: #fff; border-radius: 6px; padding: 5px 7px; font-size: 12px; }
+  #dutyGrid input:focus { border-color: #818cf8; box-shadow: 0 0 0 3px rgba(129,140,248,.15); }
 </style>
 </head>
 <body>
 
-<div id="loader" style="display:none">
-  <!-- loader görünmeyecek -->
+<div id="loader">
   <div class="loader-inner">
     <svg class="loader-logo" viewBox="0 0 48 48">
       <defs><linearGradient id="lgLoad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2c55e0"/><stop offset="1" stop-color="#16a085"/></linearGradient></defs>
@@ -203,12 +212,13 @@
 
 <main>
   <div class="tabs">
-    <button class="active" data-tab="subjects">Dersler</button>
-    <button data-tab="teachers">Öğretmenler</button>
+    <button data-tab="dashboard">Dashboard</button>
     <button data-tab="program">Ders Programı</button>
+    <button data-tab="teachers">Öğretmenler</button>
+    <button class="active" data-tab="subjects">Dersler</button>
     <button data-tab="classes">Sınıflar &amp; Atama</button>
     <button data-tab="settings2">Zaman</button>
-    <button data-tab="dashboard">Dashboard</button>
+    <button data-tab="duty">Nöbet Çizelgesi</button>
   </div>
 
   <div class="tab-panel active" id="tab-subjects">
@@ -337,6 +347,20 @@
       <div style="overflow:auto"><table id="dashTeacherTable" style="width:100%;border-collapse:collapse;font-size:13px"></table></div>
     </div>
   </div>
+
+  <div class="tab-panel" id="tab-duty">
+    <div class="form-card">
+      <h2>Nöbet Çizelgesi</h2>
+      <p style="margin:0 0 10px;font-size:12.5px;color:#64748b">Okulunuzdaki nöbet noktalarını girin, her gün için çoklu kişi seçin. Excel'e aktararak paylaşabilirsiniz.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
+        <input id="dutyNewLoc" placeholder="Yeni nokta adı (örn. Kantin)" style="border:1px solid #dde3ee;background:#fafbfd;border-radius:6px;padding:7px 9px;width:200px">
+        <button class="btn" id="dutyAddLocBtn">+ Nokta Ekle</button>
+        <span style="flex:1"></span>
+        <button class="btn" id="dutyExcelBtn" style="background:linear-gradient(95deg,#16a34a,#15803d);color:#fff;border-color:transparent">📊 Excel'e Aktar</button>
+      </div>
+      <div id="dutyGrid" style="overflow:auto"></div>
+    </div>
+  </div>
 </main>
 
 <dialog id="tutorialDialog">
@@ -415,6 +439,7 @@ function uid(){return'x'+Date.now().toString(36)+Math.random().toString(36).slic
 function dayNames(){return state.settings.days===6?DAY_NAMES_6:DAY_NAMES_5;}
 function perDayHours(d){return state.settings.perDay[d]||0;}
 let state=loadState();
+if(!state.duty)state.duty={locations:['Bahçe','Bodrum','Zemin Kat','1. Kat','2. Kat','3. Kat','Öğretmenler Odası','Müdür Yardımcısı'],assignments:{}};
 let lessons=state.lessons;
 let editingContext=null;
 let dragSourceId=null;
@@ -436,7 +461,7 @@ function distributeEvenly(total,days){const base=Math.floor(total/days);const re
 function detectConflicts(){const map=new Map();for(let d=0;d<state.settings.days;d++){for(let p=0;p<perDayHours(d);p++){const slot=lessons.filter(l=>l.day===d&&l.period===p);if(slot.length<2)continue;const groups={teacher:{},class:{},room:{}};slot.forEach(l=>{if(l.teacherId)(groups.teacher[l.teacherId]=groups.teacher[l.teacherId]||[]).push(l);if(l.class)(groups.class[l.class.toLowerCase()]=groups.class[l.class.toLowerCase()]||[]).push(l);if(l.room)(groups.room[l.room.toLowerCase()]=groups.room[l.room.toLowerCase()]||[]).push(l);});Object.entries(groups).forEach(([key,byKey])=>{Object.values(byKey).forEach(arr=>{if(arr.length>1)arr.forEach(l=>{if(!map.has(l.id))map.set(l.id,[]);const cap=key==='teacher'?'öğretmen':key==='class'?'sınıf':'derslik';arr.filter(x=>x.id!==l.id).forEach(o=>{const label=key==='teacher'?((getTeacher(l.teacherId)||{}).name||'?'):(key==='class'?l.class:l.room);map.get(l.id).push({type:cap,with:label});});});});});}}return map;}
 function renderSubjects(){const chips=$('#subjectChips');if(!state.subjects.length){chips.innerHTML='<span style="color:#9aa3b3;font-size:12px">Henüz ders yok.</span>';}else chips.innerHTML=state.subjects.map(s=>`<span class="subject-chip"><span class="dot" style="background:${s.color}"></span>${escapeHtml(s.name)}<button data-del-sub="${s.id}">✕</button></span>`).join('');chips.querySelectorAll('[data-del-sub]').forEach(b=>b.addEventListener('click',()=>{const id=b.dataset.delSub;state.subjects=state.subjects.filter(s=>s.id!==id);state.subjectPlan=state.subjectPlan.filter(p=>p.subjectId!==id);saveState();renderSubjects();renderPlan();}));}
 $('#subAddBtn').addEventListener('click',()=>{const name=$('#subName').value.trim();if(!name){showToast('Ders adı girin',true);return;}if(state.subjects.some(s=>s.name.toLowerCase()===name.toLowerCase())){showToast('Bu ders zaten var',true);return;}state.subjects.push({id:uid(),name,color:branchColor(name)});saveState();$('#subName').value='';renderSubjects();showToast(name+' eklendi');});
-function renderPlan(){const box=$('#planRows');if(!state.subjectPlan.length)box.innerHTML='<div style="color:#9aa3b3;font-size:12px;padding:6px 0">Henüz plan satırı yok. "+ Satır Ekle" ile başla.</div>';else box.innerHTML=state.subjectPlan.map(p=>{return`<div class="plan-row" data-pid="${p.id}"><select data-pf="subjectId"><option value="">— ders seç —</option>${state.subjects.map(s=>`<option value="${s.id}" ${p.subjectId===s.id?'selected':''}>${escapeHtml(s.name)}</option>`).join('')}</select><select data-pf="teacherId"><option value="">— öğretmen seç —</option>${state.teachers.map(t=>`<option value="${t.id}" ${p.teacherId===t.id?'selected':''}>${escapeHtml(t.name)} (${escapeHtml(t.branch||'')})</option>`).join('')}</select><input type="number" min="1" max="40" value="${p.hours}" data-pf="hours"><button class="btn danger btn-sm" data-pdel="${p.id}">✕</button></div>`;}).join('');box.querySelectorAll('.plan-row').forEach(row=>{const id=row.dataset.pid;const plan=state.subjectPlan.find(p=>p.id===id);row.querySelectorAll('[data-pf]').forEach(inp=>inp.addEventListener('change',e=>{const f=e.target.dataset.pf;if(f==='hours')plan.hours=Math.max(1,Math.min(40,+e.target.value||1));else plan[f]=e.target.value;saveState();renderPlan();}));row.querySelector('[data-pdel]').addEventListener('click',()=>{state.subjectPlan=state.subjectPlan.filter(p=>p.id!==id);saveState();renderPlan();});});const total=state.subjectPlan.reduce((a,p)=>a+(p.hours||0),0);const perTeacher={};state.subjectPlan.forEach(p=>{const t=getTeacher(p.teacherId);if(!t)return;perTeacher[t.name]=(perTeacher[t.name]||0)+(p.hours||0);});const warn=Object.entries(perTeacher).map(([n,h])=>{const t=state.teachers.find(x=>x.name===n);return t&&h>t.hours?`<span style="color:#e11d48">${escapeHtml(n)}: ${h}/${t.hours} aşım!</span>`:`${escapeHtml(n)}: ${h}/${t.hours}`;}).join(' · ');$('#planTotal').innerHTML=`Toplam: <strong>${total}</strong> saat${warn?' — '+warn:''}`;}
+function renderPlan(){const box=$('#planRows');if(!state.subjectPlan.length)box.innerHTML='<div style="color:#9aa3b3;font-size:12px;padding:6px 0">Henüz plan satırı yok. "+ Satır Ekle" ile başla.</div>';else box.innerHTML=state.subjectPlan.map(p=>{const tch=p.teacherId?getTeacher(p.teacherId):null;const grades=p.grades!==undefined?p.grades:(tch?teacherGrades(tch):[]);const pattern=p.pattern!==undefined?p.pattern:(tch?(tch.pattern||[]):[]);return`<div class="plan-row" data-pid="${p.id}"><select data-pf="subjectId"><option value="">— ders seç —</option>${state.subjects.map(s=>`<option value="${s.id}" ${p.subjectId===s.id?'selected':''}>${escapeHtml(s.name)}</option>`).join('')}</select><select data-pf="teacherId"><option value="">— öğretmen seç —</option>${state.teachers.map(t2=>`<option value="${t2.id}" ${p.teacherId===t2.id?'selected':''}>${escapeHtml(t2.name)} (${escapeHtml(t2.branch||'')})</option>`).join('')}</select><div class="pf-grades" data-pf-grades>${['9','10','11','12'].map(g=>`<label><input type="checkbox" value="${g}" ${grades.includes(g)?'checked':''}>${g}</label>`).join('')}</div><input data-pf="pattern" value="${escapeHtml(pattern.join(','))}" placeholder="4,4,4,3" style="width:100%"><input type="number" min="1" max="40" value="${p.hours}" data-pf="hours"><button class="btn danger btn-sm" data-pdel="${p.id}">✕</button></div>`;}).join('');box.querySelectorAll('.plan-row').forEach(row=>{const id=row.dataset.pid;const plan=state.subjectPlan.find(p=>p.id===id);const syncFromTeacher=()=>{const t=plan.teacherId?getTeacher(plan.teacherId):null;if(t){if(!plan.grades||!plan.grades.length)plan.grades=teacherGrades(t).slice();if(!plan.pattern||!plan.pattern.length)plan.pattern=(t.pattern||[]).slice();}saveState();};row.querySelector('[data-pf="subjectId"]').addEventListener('change',e=>{plan.subjectId=e.target.value;saveState();renderPlan();});row.querySelector('[data-pf="teacherId"]').addEventListener('change',e=>{plan.teacherId=e.target.value;const t=getTeacher(plan.teacherId);if(t){plan.grades=teacherGrades(t).slice();plan.pattern=(t.pattern||[]).slice();}saveState();renderPlan();});const gb=row.querySelector('[data-pf-grades]');gb.querySelectorAll('input').forEach(cb=>cb.addEventListener('change',()=>{plan.grades=[...gb.querySelectorAll('input:checked')].map(x=>x.value);if(!plan.grades.length&&plan.teacherId){const t=getTeacher(plan.teacherId);if(t)plan.grades=teacherGrades(t).slice();}saveState();}));row.querySelector('[data-pf="pattern"]').addEventListener('change',e=>{plan.pattern=String(e.target.value).split(/[,\s]+/).map(Number).filter(n=>!isNaN(n)&&n>=0);saveState();});row.querySelector('[data-pf="hours"]').addEventListener('change',e=>{plan.hours=Math.max(1,Math.min(40,+e.target.value||1));saveState();renderPlan();});row.querySelector('[data-pdel]').addEventListener('click',()=>{state.subjectPlan=state.subjectPlan.filter(p=>p.id!==id);saveState();renderPlan();});});const total=state.subjectPlan.reduce((a,p)=>a+(p.hours||0),0);const perTeacher={};state.subjectPlan.forEach(p=>{const t=getTeacher(p.teacherId);if(!t)return;perTeacher[t.name]=(perTeacher[t.name]||0)+(p.hours||0);});const warn=Object.entries(perTeacher).map(([n,h])=>{const t=state.teachers.find(x=>x.name===n);return t&&h>t.hours?`<span style="color:#e11d48">${escapeHtml(n)}: ${h}/${t.hours} aşım!</span>`:`${escapeHtml(n)}: ${h}/${t.hours}`;}).join(' · ');$('#planTotal').innerHTML=`Toplam: <strong>${total}</strong> saat${warn?' — '+warn:''}`;}
 $('#planAddBtn').addEventListener('click',()=>{state.subjectPlan.push({id:uid(),subjectId:'',teacherId:'',hours:2});saveState();renderPlan();});
 function renderTeacherList(){const tbody=$('#teacherTable tbody');const colors=['#3E7BD6','#6FA33C','#2F9A68','#D94F4F','#C99A22','#E07B2E','#7A5FD0','#27AE60','#C75BB5','#2E9696'];if(!state.teachers.length){tbody.innerHTML='<tr><td colspan="8" style="padding:20px;text-align:center;color:#6b7689">Henüz öğretmen yok.</td></tr>';$('#tTotalHours').textContent='0';$('#tTotalPlaced').textContent='0 / 0';return;}tbody.innerHTML=state.teachers.map(t=>{const placed=lessons.filter(l=>l.teacherId===t.id).length;const grades=teacherGrades(t);return`<tr data-tid="${t.id}"><td><input data-f="name" value="${escapeHtml(t.name)}"></td><td><input data-f="branch" value="${escapeHtml(t.branch||'')}"></td><td><div class="checkbox-group" data-f-grades>${['9','10','11','12'].map(g=>`<label><input type="checkbox" value="${g}" ${grades.includes(g)?'checked':''}> ${g}</label>`).join('')}</div></td><td><input data-f="hours" type="number" min="1" max="40" value="${t.hours}"></td><td><input data-f="pattern" value="${escapeHtml((t.pattern||[]).join(','))}" placeholder="4,4,4,4,4"></td><td><span class="swatch" style="background:${t.color}"></span> <strong>${placed}</strong> / ${t.hours}</td><td><select data-f="color">${colors.map(c=>`<option value="${c}" ${t.color===c?'selected':''}>${c}</option>`).join('')}</select></td><td><button class="btn danger btn-sm" data-act="del">Sil</button></td></tr>`;}).join('');tbody.querySelectorAll('tr[data-tid]').forEach(tr=>{const id=tr.dataset.tid;const t=getTeacher(id);tr.querySelectorAll('[data-f]').forEach(inp=>inp.addEventListener('change',e=>{const f=e.target.dataset.f;if(f==='hours')t.hours=Math.max(1,Math.min(40,+e.target.value||1));else if(f==='pattern')t.pattern=String(e.target.value).split(/[,\s]+/).map(Number).filter(n=>!isNaN(n)&&n>=0);else if(f==='color')t.color=e.target.value;else t[f]=e.target.value.trim();saveState();renderTeacherList();renderSchedule();renderPlan();}));const gb=tr.querySelector('[data-f-grades]');gb.querySelectorAll('input').forEach(cb=>cb.addEventListener('change',()=>{t.grades=[...gb.querySelectorAll('input:checked')].map(x=>x.value);if(!t.grades.length)t.grades=['9'];saveState();renderSchedule();}));tr.querySelector('[data-act="del"]').addEventListener('click',()=>{if(!confirm('Bu öğretmen ve tüm dersleri silinsin mi?'))return;lessons=lessons.filter(l=>l.teacherId!==id);state.subjectPlan=state.subjectPlan.filter(p=>p.teacherId!==id);state.teachers=state.teachers.filter(x=>x.id!==id);delete state.cellBlocked[id];delete state.dayBlocked[id];delete state.teacherClassHours[id];saveState();renderAll();});});$('#tTotalHours').textContent=state.teachers.reduce((a,t)=>a+t.hours,0);$('#tTotalPlaced').textContent=lessons.length+' / '+state.teachers.reduce((a,t)=>a+t.hours,0)+' saat';$('#classList').innerHTML=state.classes.map(c=>`<option value="${escapeHtml(c)}">`).join('');}
 $('#tAddBtn').addEventListener('click',()=>{const name=$('#tName').value.trim();const branch=$('#tBranch').value.trim();const grades=[...$('#tGrades').querySelectorAll('input:checked')].map(x=>x.value);const hours=+$('#tHours').value||1;const pattern=$('#tPattern').value.split(/[,\s]+/).map(Number).filter(n=>!isNaN(n)&&n>=0);if(!name||!branch){showToast('Ad ve branş gerekli',true);return;}if(!grades.length){showToast('En az bir kademe seçin',true);return;}state.teachers.push({id:uid(),name,branch,grades,hours,pattern:pattern.length?pattern:Array(state.settings.days).fill(0),color:branchColor(branch)});if(!state.subjects.some(s=>s.name.toLowerCase()===branch.toLowerCase()))state.subjects.push({id:uid(),name:branch,color:branchColor(branch)});saveState();$('#tName').value='';$('#tBranch').value='';$('#tPattern').value='';$('#tGrades').querySelectorAll('input').forEach(x=>x.checked=false);renderAll();showToast(name+' eklendi');});
@@ -444,6 +469,7 @@ function renderClassList(){const tbody=$('#classTable tbody');tbody.innerHTML=st
 $('#addClassBtn').addEventListener('click',()=>{const v=$('#newClassName').value.trim();if(!v)return;if(state.classes.includes(v)){showToast('Bu sınıf zaten var',true);return;}state.classes.push(v);state.classHours[v]=+$('#newClassHours').value||40;saveState();$('#newClassName').value='';renderAll();});
 function renderAssignmentGrid(){const box=$('#assignmentGrid');if(!state.teachers.length||!state.classes.length){box.innerHTML='<div style="padding:14px;color:#6b7689;text-align:center">Önce sınıf ve öğretmen ekleyin.</div>';return;}const header='<th style="position:sticky;left:0;background:#f7f9fc;z-index:1">Öğretmen</th>'+state.classes.map(c=>`<th style="min-width:70px">${escapeHtml(c)}</th>`).join('')+'<th style="min-width:70px;color:#14b8a6">Atanan</th><th style="min-width:60px;color:#4f46e5">Hedef</th><th></th>';const rows=state.teachers.map(t=>{const cells=state.classes.map(c=>{const v=(state.teacherClassHours[t.id]||{})[c]||0;return`<td><input type="number" min="0" max="40" value="${v}" data-th="${t.id}" data-cls="${escapeHtml(c)}" style="width:58px;border:1px solid #e2e8f0;background:#fff;border-radius:4px;padding:3px 5px;font-size:12px"></td>`;}).join('');const sum=state.classes.reduce((a,c)=>a+((state.teacherClassHours[t.id]||{})[c]||0),0);return`<tr><td style="position:sticky;left:0;background:#fff;font-weight:600"><span class="swatch" style="background:${t.color}"></span>${escapeHtml(t.name)}</td>${cells}<td><strong>${sum}</strong> / ${t.hours}</td><td><button class="btn danger btn-sm" data-clear="${t.id}">Sıfırla</button></td></tr>`;}).join('');box.innerHTML=`<table class="teacher-list" style="min-width:700px"><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table>`;box.querySelectorAll('input[data-th]').forEach(inp=>inp.addEventListener('change',e=>{const tid=e.target.dataset.th,cls=e.target.dataset.cls;const v=Math.max(0,Math.min(40,+e.target.value||0));if(!state.teacherClassHours[tid])state.teacherClassHours[tid]={};if(v===0)delete state.teacherClassHours[tid][cls];else state.teacherClassHours[tid][cls]=v;saveState();renderAssignmentGrid();}));box.querySelectorAll('[data-clear]').forEach(b=>b.addEventListener('click',()=>{delete state.teacherClassHours[b.dataset.clear];saveState();renderAssignmentGrid();}));}
 function renderSettings(){$('#sStart').value=state.settings.start;$('#sLen').value=state.settings.len;$('#sBreak').value=state.settings.brk;$('#sDays').value=String(state.settings.days);renderPerDayGrid();}
+function renderDuty(){if(!state.duty)state.duty={locations:[],assignments:{}};const days=dayNames();const box=$('#dutyGrid');let h='<table class="teacher-list" style="min-width:600px"><thead><tr><th style="min-width:150px">Nokta</th>';days.forEach(d=>h+='<th style="min-width:140px">'+d+'</th>');h+='<th></th></tr></thead><tbody>';state.duty.locations.forEach((loc,li)=>{h+='<tr><td><input data-df="loc" value="'+escapeHtml(loc)+'" style="width:140px;border:1px solid #dde3ee;background:#fff;border-radius:6px;padding:5px 7px;font-size:13px"></td>';days.forEach((d,di)=>{const key=di+'|'+li;const v=(state.duty.assignments[key]||[]).map(escapeHtml).join(', ');h+='<td><input data-assign="'+key+'" value="'+v+'" placeholder="virgülle"></td>';});h+='<td><button class="btn danger btn-sm" data-rm-loc="'+li+'">Sil</button></td></tr>';});h+='</tbody></table>';box.innerHTML=h;box.querySelectorAll('[data-df="loc"]').forEach(inp=>inp.addEventListener('change',e=>{const li=+e.target.closest('tr').dataset.index;const trs=box.querySelectorAll('tbody tr');const rowIndex=[...trs].indexOf(e.target.closest('tr'));state.duty.locations[rowIndex]=e.target.value.trim();saveState();}));box.querySelectorAll('[data-assign]').forEach(inp=>inp.addEventListener('change',e=>{const key=e.target.dataset.assign;const names=e.target.value.split(',').map(s=>s.trim()).filter(Boolean);state.duty.assignments[key]=names;saveState();}));box.querySelectorAll('[data-rm-loc]').forEach(b=>b.addEventListener('click',()=>{const li=+b.dataset.rmLoc;state.duty.locations.splice(li,1);Object.keys(state.duty.assignments).forEach(k=>{const[d,oi]=k.split('|');if(+oi===li)delete state.duty.assignments[k];else if(+oi>li)state.duty.assignments[d+'|'+(oi-1)]=state.duty.assignments[k];delete state.duty.assignments[k];});saveState();renderDuty();}));}
 function renderPerDayGrid(){const days=dayNames();const grid=$('#perDayGrid');grid.style.gridTemplateColumns='repeat('+days.length+', 1fr)';grid.innerHTML=days.map((d,i)=>`<div style="background:#f7f9fc;border:1px solid #eef1f6;border-radius:8px;padding:8px 10px"><div style="font-size:11px;color:#6b7689;font-weight:600;text-transform:uppercase;margin-bottom:4px">${d}</div><input type="number" min="0" max="12" value="${state.settings.perDay[i]||0}" data-pd="${i}" style="width:100%;border:1px solid #dde3ee;background:#fff;border-radius:6px;padding:6px 8px;font-size:14px;font-weight:600"></div>`).join('');grid.querySelectorAll('[data-pd]').forEach(inp=>inp.addEventListener('change',e=>{state.settings.perDay[+e.target.dataset.pd]=Math.max(0,Math.min(12,+e.target.value||0));saveState();}));}
 $('#resetDaysBtn').addEventListener('click',()=>{state.settings.perDay=Array(state.settings.days).fill(8);saveState();renderPerDayGrid();});
 $('#sApplyBtn').addEventListener('click',()=>{state.settings.start=$('#sStart').value||'08:30';state.settings.len=Math.max(20,Math.min(90,+$('#sLen').value||40));state.settings.brk=Math.max(0,Math.min(30,+$('#sBreak').value||10));state.settings.days=Math.max(5,Math.min(6,+$('#sDays').value||5));const pd=[];for(let i=0;i<state.settings.days;i++)pd.push(state.settings.perDay[i]||0);state.settings.perDay=pd;lessons=lessons.filter(l=>l.day<state.settings.days&&l.period<(state.settings.perDay[l.day]||0));saveState();renderSettings();renderAll();showToast('Ayarlar uygulandı');});
@@ -466,8 +492,8 @@ function distributeAll(){if(!state.subjectPlan.length){showToast('Önce Dersler 
 $('#distributeBtn').addEventListener('click',()=>{if(!confirm('Mevcut dersler silinip plana göre yeniden dağıtılacak. Devam?'))return;distributeAll();});
 $('#clearScheduleBtn').addEventListener('click',()=>{if(!confirm('Tablodaki tüm dersler silinecek. Devam?'))return;lessons=[];saveState();renderAll();});
 function renderDashboard(){const total=lessons.length;const planTotal=state.subjectPlan.reduce((a,p)=>a+(p.hours||0),0);const conflictCount=detectConflicts().size;const cellLocked=Object.values(state.cellBlocked).reduce((a,l)=>a+l.length,0);const dayLocked=Object.values(state.dayBlocked).reduce((a,l)=>a+l.length,0);const cards=[['Öğretmen',state.teachers.length],['Ders',state.subjects.length],['Sınıf',state.classes.length],['Plan',planTotal+' saat'],['Yerleşen',total],['Çakışma',conflictCount],['Kilitli Saat',cellLocked],['Kilitli Gün',dayLocked]];$('#dashOverview').innerHTML=cards.map(c=>`<div style="background:#f7f9fc;border:1px solid #eef1f6;border-radius:8px;padding:8px 12px"><div style="font-size:20px;font-weight:700">${c[1]}</div><div style="font-size:10.5px;color:#6b7689;text-transform:uppercase">${c[0]}</div></div>`).join('');const rows=state.teachers.map(t=>{const placed=lessons.filter(l=>l.teacherId===t.id);const fill=t.hours?Math.round(placed.length/t.hours*100):0;return`<tr><td style="padding:7px 8px;border-top:1px solid #eef1f6;font-weight:600"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${t.color};margin-right:6px"></span>${escapeHtml(t.name)}<br><small style="color:#6b7689;font-weight:400">${escapeHtml(t.branch||'')}</small></td><td style="padding:7px 8px;border-top:1px solid #eef1f6;text-align:center"><strong>${placed.length}</strong>/${t.hours}</td><td style="padding:7px 8px;border-top:1px solid #eef1f6;width:120px"><div style="background:#eef1f6;border-radius:6px;height:14px;overflow:hidden"><div style="background:${fill>=100?'#14b8a6':fill>80?'#f0c75e':'#4f46e5'};height:100%;width:${Math.min(100,fill)}%"></div></div></td><td style="padding:7px 8px;border-top:1px solid #eef1f6;color:#6b7689">${[...new Set(placed.map(l=>l.class))].join(', ')}</td></tr>`;}).join('');$('#dashTeacherTable').innerHTML='<thead><tr style="background:#f7f9fc;font-size:11px;text-transform:uppercase;color:#6b7689"><th style="padding:7px 8px;text-align:left">Öğretmen</th><th>Ders</th><th style="text-align:left">Doluluk</th><th style="text-align:left">Sınıflar</th></tr></thead><tbody>'+(rows||'<tr><td colspan="4" style="padding:14px;text-align:center;color:#6b7689">Henüz öğretmen yok</td></tr>')+'</tbody>';}
-function renderAll(){renderSubjects();renderPlan();renderTeacherList();renderClassList();renderSettings();renderTeacherFilter();renderSchedule();renderDashboard();}
-$$('.tabs button[data-tab]').forEach(btn=>btn.addEventListener('click',()=>{$$('.tabs button[data-tab]').forEach(b=>b.classList.remove('active'));$$('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');$('#tab-'+btn.dataset.tab).classList.add('active');if(btn.dataset.tab==='dashboard')renderDashboard();}));
+function renderAll(){renderSubjects();renderPlan();renderTeacherList();renderClassList();renderDuty();renderSettings();renderTeacherFilter();renderSchedule();renderDashboard();}
+$$('.tabs button[data-tab]').forEach(btn=>btn.addEventListener('click',()=>{$$('.tabs button[data-tab]').forEach(b=>b.classList.remove('active'));$$('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');$('#tab-'+btn.dataset.tab).classList.add('active');try{if(btn.dataset.tab==='dashboard')renderDashboard();else if(btn.dataset.tab==='duty')renderDuty();}catch(e){console.error('tab:',e);}}));
 $('#exportBtn').addEventListener('click',exportData);$('#exportBtn2')?.addEventListener('click',exportData);
 $('#exportExcelBtn')?.addEventListener('click',exportExcel);
 $('#exportExcelBtn2')?.addEventListener('click',exportExcel);
@@ -518,6 +544,22 @@ function exportExcel(){
   XLSX.writeFile(wb, 'progoto-' + new Date().toISOString().slice(0,10) + '.xlsx');
   showToast('Excel dosyası indirildi');
 }
+function exportDutyExcel(){
+  if(typeof XLSX==='undefined'){showToast('Excel kütüphanesi yüklenemedi',true);return;}
+  const wb=XLSX.utils.book_new();
+  const days=dayNames();
+  const sheet=[['Nokta',...days]];
+  state.duty.locations.forEach((loc,li)=>{
+    const row=[loc];
+    days.forEach((d,di)=>{const key=di+'|'+li;row.push((state.duty.assignments[key]||[]).join(', '));});
+    sheet.push(row);
+  });
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(sheet),'Nöbet Çizelgesi');
+  XLSX.writeFile(wb,'nobet-cizelgesi-'+new Date().toISOString().slice(0,10)+'.xlsx');
+  showToast('Nöbet çizelgesi Excel\'e aktarıldı');
+}
+$('#dutyAddLocBtn')?.addEventListener('click',()=>{const v=$('#dutyNewLoc').value.trim();if(!v){showToast('Nokta adı girin',true);return;}state.duty.locations.push(v);$('#dutyNewLoc').value='';saveState();renderDuty();});
+$('#dutyExcelBtn')?.addEventListener('click',exportDutyExcel);
 
 function importExcel(file){
   if (typeof XLSX === 'undefined') { showToast('Excel kütüphanesi yüklenemedi', true); return; }
@@ -750,7 +792,8 @@ window.addEventListener('resize', () => {
 $('#printBtn').addEventListener('click',()=>window.print());
 $('#clearBtn').addEventListener('click',e=>{const btn=e.currentTarget;if(!btn.classList.contains('armed')){btn.classList.add('armed');btn.textContent='Emin misin?';setTimeout(()=>{btn.classList.remove('armed');btn.textContent='Temizle';},3000);return;}lessons=[];state.cellBlocked={};state.dayBlocked={};saveState();renderAll();showToast('Temizlendi');});
 $('#settingsBtn').addEventListener('click',()=>$('#settingsDialog')?.showModal());
-setTimeout(()=>{const l=$('#loader');if(l){l.classList.add('done');setTimeout(()=>l.remove(),600);}},3000);
+setTimeout(()=>{try{const l=$('#loader');if(l){l.classList.add('done');setTimeout(()=>l.remove(),600);}}catch(e){}},3000);
+try{renderAll();}catch(e){console.error('renderAll:',e);}
 renderAll();
 </script>
 </body>
