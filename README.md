@@ -37,6 +37,7 @@ Thanks to everyone who has contributed to this project:
 
 <p align="left">
 <a href="https://github.com/kekli" title="kekli"><img src="https://avatars.githubusercontent.com/u/7422482?v=4&s=64" width="64" height="64" alt="kekli" style="border-radius:50%" /></a>
+<a href="https://github.com/aziz-dll" title="aziz-dll"><img src="https://avatars.githubusercontent.com/u/194628751?v=4&s=64" width="64" height="64" alt="aziz-dll" style="border-radius:50%" /></a>
 <a href="https://github.com/salihasafkeklikci0-alt" title="salihasafkeklikci0-alt"><img src="https://avatars.githubusercontent.com/u/249350668?v=4&s=64" width="64" height="64" alt="salihasafkeklikci0-alt" style="border-radius:50%" /></a>
 </p>
 
@@ -56,3 +57,11 @@ Contributions are welcome! Here's the standard flow:
 Please follow the existing code style and include tests for new behavior where applicable.
 
 ---
+
+<div align="center">
+
+[![Made with ReadmeBuddy](https://img.shields.io/badge/Made%20with-ReadmeBuddy-8B5CFF?style=for-the-badge&logo=markdown&logoColor=white)](https://readmebuddy.com)
+
+<sub>Generate beautiful READMEs in seconds → <a href="https://readmebuddy.com">readmebuddy.com</a></sub>
+
+</div>
