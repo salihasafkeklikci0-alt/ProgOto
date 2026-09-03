@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ProgOto — Haftalık Ders Programı</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%232c55e0'/%3E%3Cstop offset='1' stop-color='%2316a085'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='2' y='2' width='44' height='44' rx='11' fill='url(%23g)'/%3E%3Cpath d='M12 17h24M12 25h24M12 33h16M20 11v28M32 11v16' stroke='rgba(255,255,255,.4)' stroke-width='2.4' stroke-linecap='round'/%3E%3Cpath d='M33 22l-8 12h6l-2 10 9-14h-6z' fill='%23F2D574' stroke='%23fff' stroke-width='1.4'/%3E%3C/svg%3E">
 <style>
   * { box-sizing: border-box; }
@@ -171,10 +172,13 @@
     <h1>ProgOto <small>Haftalık Ders Programı</small></h1>
   </div>
   <div class="top-actions">
+    <button class="btn btn-icon" id="tutorialBtn" title="Kullanım kılavuzu" style="background:linear-gradient(95deg,#0ea5e9,#14b8a6);color:#fff;border-color:transparent">ⓘ</button>
     <button class="btn btn-icon" id="settingsBtn">⚙</button>
-    <button class="btn" id="exportBtn">Dışa Aktar</button>
+    <button class="btn" id="exportBtn">JSON Dışa Aktar</button>
+    <button class="btn" id="exportExcelBtn" style="background:linear-gradient(95deg,#16a34a,#15803d);color:#fff;border-color:transparent">📊 Excel</button>
     <button class="btn" id="importBtn">İçe Aktar</button>
-    <input type="file" id="importFile" accept="application/json" hidden>
+    <input type="file" id="importFile" accept="application/json,.json" hidden>
+    <input type="file" id="importExcelFile" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
     <button class="btn" id="printBtn">Yazdır</button>
     <button class="btn danger" id="clearBtn">Temizle</button>
   </div>
@@ -293,12 +297,18 @@
       <h2>Yedekleme</h2>
       <div class="form-row">
         <button class="btn" id="exportBtn2">JSON Dışa Aktar</button>
+        <button class="btn" id="exportExcelBtn2" style="background:linear-gradient(95deg,#16a34a,#15803d);color:#fff;border-color:transparent">📊 Excel</button>
         <button class="btn" id="importBtn2">JSON İçe Aktar</button>
-        <input type="file" id="importFile2" accept="application/json" hidden>
+        <input type="file" id="importFile2" accept="application/json,.json" hidden>
+        <input type="file" id="importExcelFile2" accept=".xlsx" hidden>
         <button class="btn danger" id="resetAllBtn">Her Şeyi Sıfırla</button>
       </div>
     </div>
   </div>
+
+<div style="text-align:center;padding:16px;font-size:12px;color:#94a3b8">
+  ⓘ Kullanım kılavuzu için üst menüdeki <span style="display:inline-block;width:18px;height:18px;background:linear-gradient(95deg,#0ea5e9,#14b8a6);color:#fff;border-radius:4px;text-align:center;line-height:18px;font-size:11px;vertical-align:middle">ⓘ</span> butonuna tıklayın.
+</div>
 
   <div class="tab-panel" id="tab-dashboard">
     <div class="form-card">
@@ -311,6 +321,54 @@
     </div>
   </div>
 </main>
+
+<dialog id="tutorialDialog">
+  <div class="modal-head"><h2>📖 ProgOto — Kullanım Kılavuzu</h2><button type="button" class="modal-close" id="tutorialCloseBtn">×</button></div>
+  <div class="modal-body" style="max-height:65vh;overflow-y:auto">
+    <h3 style="margin:0 0 8px;font-size:14px;color:#4f46e5">🎯 Amaç</h3>
+    <p style="margin:0 0 14px;font-size:13.5px;line-height:1.55">Okulunuzdaki öğretmenlerin haftalık ders programını birkaç dakikada oluşturan tek-dosya uygulama. Kurulum yok, internet gerekmez, verileriniz tarayıcınızda kalır.</p>
+
+    <h3 style="margin:0 0 8px;font-size:14px;color:#4f46e5">① Zaman ayarları</h3>
+    <p style="margin:0 0 14px;font-size:13px;line-height:1.55"><b>Zaman</b> sekmesi → ilk ders saati, ders süresi, teneffüs ve her gün için ayrı ders saati sayısı. Örn. Pazartesi 8, Salı 7, Çarşamba 6 gibi.</p>
+
+    <h3 style="margin:0 0 8px;font-size:14px;color:#4f46e5">② Sınıf ekle</h3>
+    <p style="margin:0 0 14px;font-size:13px;line-height:1.55"><b>Sınıflar &amp; Atama</b> sekmesi → her sınıf için haftalık hedef saat (örn. 40). "Öğretmen → Sınıf Ataması" tablosu opsiyoneldir; doldurursanız dağıtım motoru ona göre çalışır.</p>
+
+    <h3 style="margin:0 0 8px;font-size:14px;color:#4f46e5">③ Dersler kataloğu</h3>
+    <p style="margin:0 0 14px;font-size:13px;line-height:1.55"><b>Dersler</b> sekmesi → okulunuzdaki dersleri girin (Matematik, Türk Dili, vb.). Otomatik renk atanır.</p>
+
+    <h3 style="margin:0 0 8px;font-size:14px;color:#4f46e5">④ Öğretmen → Ders Planı</h3>
+    <p style="margin:0 0 14px;font-size:13px;line-height:1.55">Aynı sekmede altta: her satırda <b>hangi öğretmen hangi dersten kaç saat girecek</b>? Örn. "Matematik / Selin Aksoy / 18 saat". "Otomatik Dağıt" bu plana göre 5 güne dağıtır.</p>
+
+    <h3 style="margin:0 0 8px;font-size:14px;color:#4f46e5">⑤ Öğretmen tanımı</h3>
+    <p style="margin:0 0 14px;font-size:13px;line-height:1.55"><b>Öğretmenler</b> sekmesi → ad, branş, çoklu kademe (9+11 gibi), haftalık saat, günlük dağılım (4,4,4,3,3). Branş yazınca otomatik ders kataloğuna eklenir.</p>
+
+    <h3 style="margin:0 0 8px;font-size:14px;color:#4f46e5">⑥ Ders Programı sekmesi</h3>
+    <p style="margin:0 0 14px;font-size:13px;line-height:1.55">Otomatik dağıtım sonrası tablo dolu gelir. Burada:</p>
+    <ul style="margin:0 0 14px;padding-left:20px;font-size:13px;line-height:1.7">
+      <li><b>Boş slot</b>: tıkla → yeni ders ekle</li>
+      <li><b>Hover ✕</b>: o saati kilitle (kırmızı çapraz görünür)</li>
+      <li><b>Sağ tık</b>: günü tamamen kapat/aç</li>
+      <li><b>Sürükle-bırak</b>: ders kartını başka hücreye taşı</li>
+      <li><b>Filtre</b> (sağ üst): tek öğretmeni görüntüle</li>
+    </ul>
+
+    <h3 style="margin:0 0 8px;font-size:14px;color:#4f46e5">⑦ Yedekleme</h3>
+    <p style="margin:0 0 14px;font-size:13px;line-height:1.55"><b>JSON Dışa Aktar</b> ile tüm verileri tek dosyada yedekleyebilir, <b>JSON İçe Aktar</b> ile geri yükleyebilirsiniz. <b>Excel Dışa Aktar</b> ile öğretmenleri, dersleri ve haftalık programı 3 ayrı çalışma sayfası halinde indirirsiniz. <b>Excel İçe Aktar</b> ile aynı şablondaki .xlsx dosyasını okuyabilirsiniz.</p>
+
+    <h3 style="margin:0 0 8px;font-size:14px;color:#4f46e5">⑧ İpuçları</h3>
+    <ul style="margin:0 0 0;padding-left:20px;font-size:13px;line-height:1.7">
+      <li>Bir öğretmeni silecekseniz önce ona ait dersleri silin veya başka öğretmene atayın</li>
+      <li>Veriler <code>localStorage</code>'da saklanır → tarayıcı verilerini silmeyin</li>
+      <li>Yazdır butonu A4 yatay çıktı verir</li>
+      <li>Bir hata olursa "Temizle" ile tüm verileri sıfırlayabilirsiniz</li>
+    </ul>
+  </div>
+  <div class="modal-actions">
+    <span></span>
+    <div class="right"><button class="btn primary" id="tutorialOkBtn">Anladım</button></div>
+  </div>
+</dialog>
 
 <dialog id="editDialog">
   <div class="modal-head"><h2>Ders</h2><button type="button" class="modal-close" id="closeBtn">×</button></div>
@@ -415,11 +473,138 @@ function renderDashboard(){const total=lessons.length;const planTotal=state.subj
 function renderAll(){renderSubjects();renderPlan();renderTeacherList();renderClassList();renderSettings();renderTeacherFilter();renderSchedule();renderDashboard();}
 $$('.tabs button[data-tab]').forEach(btn=>btn.addEventListener('click',()=>{$$('.tabs button[data-tab]').forEach(b=>b.classList.remove('active'));$$('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');$('#tab-'+btn.dataset.tab).classList.add('active');if(btn.dataset.tab==='dashboard')renderDashboard();}));
 $('#exportBtn').addEventListener('click',exportData);$('#exportBtn2')?.addEventListener('click',exportData);
-function exportData(){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='progoto-'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(a.href);showToast('Yedek indirildi');}
+$('#exportExcelBtn')?.addEventListener('click',exportExcel);
+$('#exportExcelBtn2')?.addEventListener('click',exportExcel);
+function exportData(){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='progoto-'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(a.href);showToast('JSON yedeği indirildi');}
+
+// Excel: SheetJS ile çoklu sayfa .xlsx üretir
+function exportExcel(){
+  if (typeof XLSX === 'undefined') { showToast('Excel kütüphanesi yüklenemedi (internet?)', true); return; }
+  const wb = XLSX.utils.book_new();
+  // 1) Dersler
+  const subSheet = [['Ders Adı', 'Renk']];
+  state.subjects.forEach(s => subSheet.push([s.name, s.color]));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(subSheet), 'Dersler');
+  // 2) Öğretmenler
+  const tSheet = [['Ad Soyad','Branş','Kademe','Haftalık Saat','Günlük Dağılım','Renk']];
+  state.teachers.forEach(t => tSheet.push([t.name, t.branch||'', teacherGrades(t).join(','), t.hours, (t.pattern||[]).join(','), t.color]));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(tSheet), 'Öğretmenler');
+  // 3) Ders Programı (öğretmen × gün matrisi)
+  const days = dayNames();
+  const header = ['Öğretmen', 'Branş', ...days];
+  const pSheet = [header];
+  state.teachers.forEach(t => {
+    const row = [t.name, t.branch||''];
+    for (let d = 0; d < days.length; d++) {
+      const dayLessons = state.lessons.filter(l => l.teacherId === t.id && l.day === d)
+        .sort((a, b) => a.period - b.period)
+        .map(l => l.class + (l.note ? ` (${l.note})` : ''));
+      row.push(dayLessons.join(' | '));
+    }
+    pSheet.push(row);
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(pSheet), 'Program');
+  // 4) Sınıflar
+  const cSheet = [['Sınıf', 'Hedef Saat', 'Yerleşen']];
+  state.classes.forEach(c => {
+    const placed = state.lessons.filter(l => l.class === c).length;
+    cSheet.push([c, state.classHours[c] || 40, placed]);
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(cSheet), 'Sınıflar');
+  // 5) Plan
+  const planSheet = [['Ders', 'Öğretmen', 'Saat']];
+  state.subjectPlan.forEach(p => {
+    const s = getSubject(p.subjectId);
+    const t = getTeacher(p.teacherId);
+    planSheet.push([(s && s.name) || '', (t && t.name) || '', p.hours || 0]);
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(planSheet), 'Ders Planı');
+  XLSX.writeFile(wb, 'progoto-' + new Date().toISOString().slice(0,10) + '.xlsx');
+  showToast('Excel dosyası indirildi');
+}
+
+function importExcel(file){
+  if (typeof XLSX === 'undefined') { showToast('Excel kütüphanesi yüklenemedi', true); return; }
+  const r = new FileReader();
+  r.onload = (e) => {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+      // Öğretmenler sayfası
+      const tSheet = wb.Sheets['Öğretmenler'];
+      if (tSheet) {
+        const rows = XLSX.utils.sheet_to_json(tSheet, { header: 1 });
+        state.teachers = [];
+        for (let i = 1; i < rows.length; i++) {
+          const r2 = rows[i];
+          if (!r2 || !r2[0]) continue;
+          const grades = String(r2[2] || '').split(/[,\s]+/).filter(Boolean);
+          const pattern = String(r2[4] || '').split(/[,\s]+/).map(Number).filter(n => !isNaN(n));
+          state.teachers.push({
+            id: uid(), name: String(r2[0]), branch: String(r2[1] || ''),
+            grades: grades.length ? grades : ['9'],
+            hours: Number(r2[3]) || 1,
+            pattern: pattern,
+            color: r2[5] || branchColor(String(r2[1] || ''))
+          });
+        }
+      }
+      // Dersler sayfası
+      const sSheet = wb.Sheets['Dersler'];
+      if (sSheet) {
+        const rows = XLSX.utils.sheet_to_json(sSheet, { header: 1 });
+        state.subjects = [];
+        for (let i = 1; i < rows.length; i++) {
+          const r2 = rows[i];
+          if (!r2 || !r2[0]) continue;
+          state.subjects.push({ id: uid(), name: String(r2[0]), color: r2[1] || branchColor(String(r2[0])) });
+        }
+      }
+      // Sınıflar
+      const cSheet = wb.Sheets['Sınıflar'];
+      if (cSheet) {
+        const rows = XLSX.utils.sheet_to_json(cSheet, { header: 1 });
+        state.classes = [];
+        state.classHours = {};
+        for (let i = 1; i < rows.length; i++) {
+          const r2 = rows[i];
+          if (!r2 || !r2[0]) continue;
+          state.classes.push(String(r2[0]));
+          state.classHours[r2[0]] = Number(r2[1]) || 40;
+        }
+      }
+      // Plan
+      const pSheet = wb.Sheets['Ders Planı'];
+      if (pSheet) {
+        const rows = XLSX.utils.sheet_to_json(pSheet, { header: 1 });
+        state.subjectPlan = [];
+        for (let i = 1; i < rows.length; i++) {
+          const r2 = rows[i];
+          if (!r2 || !r2[0]) continue;
+          const s = state.subjects.find(x => x.name === String(r2[0]));
+          const t = state.teachers.find(x => x.name === String(r2[1]));
+          if (s && t) state.subjectPlan.push({ id: uid(), subjectId: s.id, teacherId: t.id, hours: Number(r2[2]) || 1 });
+        }
+      }
+      saveState(); renderAll();
+      showToast('Excel yüklendi');
+    } catch (err) { showToast('Geçersiz Excel: ' + err.message, true); }
+  };
+  r.readAsArrayBuffer(file);
+}
+
 $('#importBtn').addEventListener('click',()=>$('#importFile').click());
 $('#importBtn2')?.addEventListener('click',()=>$('#importFile2').click());
-function setupImport(inpId){$('#'+inpId).addEventListener('change',e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{const data=JSON.parse(r.result);if(!data.teachers)throw new Error('bad');state={...structuredClone(DEFAULT_STATE),...data};saveState();renderAll();showToast('Yedek yüklendi');}catch(err){showToast('Geçersiz yedek',true);}};r.readAsText(file);e.target.value='';});}
+$('#importExcelFile')?.addEventListener('change', e => { if (e.target.files[0]) importExcel(e.target.files[0]); e.target.value = ''; });
+$('#importExcelFile2')?.addEventListener('change', e => { if (e.target.files[0]) importExcel(e.target.files[0]); e.target.value = ''; });
+function setupImport(inpId){$('#'+inpId).addEventListener('change',e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{const data=JSON.parse(r.result);if(!data.teachers)throw new Error('bad');state={...structuredClone(DEFAULT_STATE),...data};saveState();renderAll();showToast('JSON yedeği yüklendi');}catch(err){showToast('Geçersiz yedek',true);}};r.readAsText(file);e.target.value='';});}
 setupImport('importFile');setupImport('importFile2');
+
+// Tutorial modalı — sadece ⓘ butonuna tıklayınca açılır
+$('#tutorialBtn').addEventListener('click', () => $('#tutorialDialog').showModal());
+$('#tutorialCloseBtn').addEventListener('click', () => $('#tutorialDialog').close());
+$('#tutorialOkBtn').addEventListener('click', () => $('#tutorialDialog').close());
+$('#tutorialDialog').addEventListener('click', e => { if (e.target === $('#tutorialDialog')) $('#tutorialDialog').close(); });
 $('#printBtn').addEventListener('click',()=>window.print());
 $('#clearBtn').addEventListener('click',e=>{const btn=e.currentTarget;if(!btn.classList.contains('armed')){btn.classList.add('armed');btn.textContent='Emin misin?';setTimeout(()=>{btn.classList.remove('armed');btn.textContent='Temizle';},3000);return;}lessons=[];state.cellBlocked={};state.dayBlocked={};saveState();renderAll();showToast('Temizlendi');});
 $('#settingsBtn').addEventListener('click',()=>$('#settingsDialog')?.showModal());
