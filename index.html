@@ -124,6 +124,16 @@
   .lesson.has-conflict { border-color: #e11d48; box-shadow: 0 0 0 2px rgba(225,29,72,.25); }
   .lesson.has-conflict::after { content: "!"; position: absolute; top: -5px; right: -5px; font-size: 11px; font-weight: 800; color: #fff; background: #e11d48; width: 19px; height: 19px; border-radius: 50%; display: flex; align-items: center; justify-content: center; line-height: 1; box-shadow: 0 2px 6px rgba(225,29,72,.4); }
   dialog { border: 0; border-radius: 16px; padding: 0; background: #fff; width: min(440px, 92vw); box-shadow: 0 25px 60px rgba(15,23,42,.25); }
+  dialog.wide { width: min(540px, 94vw); }
+  .tut-dot { width: 8px; height: 8px; border-radius: 50%; background: #e2e8f0; transition: all .2s; }
+  .tut-dot.active { background: #4f46e5; transform: scaleX(1.6); border-radius: 4px; width: 18px; }
+  .tut-dot.done { background: #a5b4fc; }
+  .tut-highlight { position: relative; z-index: 9999; box-shadow: 0 0 0 4px rgba(99,102,241,.4), 0 8px 24px rgba(99,102,241,.25); border-radius: 12px; }
+  #tutorialContent h3 { margin: 0 0 8px; font-size: 15px; color: #4f46e5; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  #tutorialContent p { margin: 0 0 10px; }
+  #tutorialContent ul { margin: 0; padding-left: 18px; }
+  #tutorialContent li { margin-bottom: 4px; }
+  #tutorialContent kbd { background: #f1f5f9; border: 1px solid #cbd5e1; border-bottom-width: 2px; border-radius: 4px; padding: 1px 5px; font-size: 11px; font-family: ui-monospace, monospace; }
   dialog::backdrop { background: rgba(15,23,42,.45); backdrop-filter: blur(4px); }
   .modal-head { padding: 16px 20px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; }
   .modal-head h2 { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: -.01em; }
@@ -172,7 +182,13 @@
     <h1>ProgOto <small>Haftalık Ders Programı</small></h1>
   </div>
   <div class="top-actions">
-    <button class="btn btn-icon" id="tutorialBtn" title="Kullanım kılavuzu" style="background:linear-gradient(95deg,#0ea5e9,#14b8a6);color:#fff;border-color:transparent">ⓘ</button>
+    <button class="btn btn-icon" id="tutorialBtn" title="Kullanım kılavuzu" aria-label="Kullanım kılavuzu" style="background:linear-gradient(95deg,#0ea5e9,#14b8a6);color:#fff;border-color:transparent;position:relative">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:auto">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="11" x2="12" y2="17"/>
+        <circle cx="12" cy="7.5" r="0.8" fill="currentColor" stroke="none"/>
+      </svg>
+    </button>
     <button class="btn btn-icon" id="settingsBtn">⚙</button>
     <button class="btn" id="exportBtn">JSON Dışa Aktar</button>
     <button class="btn" id="exportExcelBtn" style="background:linear-gradient(95deg,#16a34a,#15803d);color:#fff;border-color:transparent">📊 Excel</button>
@@ -323,52 +339,31 @@
 </main>
 
 <dialog id="tutorialDialog">
-  <div class="modal-head"><h2>📖 ProgOto — Kullanım Kılavuzu</h2><button type="button" class="modal-close" id="tutorialCloseBtn">×</button></div>
-  <div class="modal-body" style="max-height:65vh;overflow-y:auto">
-    <h3 style="margin:0 0 8px;font-size:14px;color:#4f46e5">🎯 Amaç</h3>
-    <p style="margin:0 0 14px;font-size:13.5px;line-height:1.55">Okulunuzdaki öğretmenlerin haftalık ders programını birkaç dakikada oluşturan tek-dosya uygulama. Kurulum yok, internet gerekmez, verileriniz tarayıcınızda kalır.</p>
-
-    <h3 style="margin:0 0 8px;font-size:14px;color:#4f46e5">① Zaman ayarları</h3>
-    <p style="margin:0 0 14px;font-size:13px;line-height:1.55"><b>Zaman</b> sekmesi → ilk ders saati, ders süresi, teneffüs ve her gün için ayrı ders saati sayısı. Örn. Pazartesi 8, Salı 7, Çarşamba 6 gibi.</p>
-
-    <h3 style="margin:0 0 8px;font-size:14px;color:#4f46e5">② Sınıf ekle</h3>
-    <p style="margin:0 0 14px;font-size:13px;line-height:1.55"><b>Sınıflar &amp; Atama</b> sekmesi → her sınıf için haftalık hedef saat (örn. 40). "Öğretmen → Sınıf Ataması" tablosu opsiyoneldir; doldurursanız dağıtım motoru ona göre çalışır.</p>
-
-    <h3 style="margin:0 0 8px;font-size:14px;color:#4f46e5">③ Dersler kataloğu</h3>
-    <p style="margin:0 0 14px;font-size:13px;line-height:1.55"><b>Dersler</b> sekmesi → okulunuzdaki dersleri girin (Matematik, Türk Dili, vb.). Otomatik renk atanır.</p>
-
-    <h3 style="margin:0 0 8px;font-size:14px;color:#4f46e5">④ Öğretmen → Ders Planı</h3>
-    <p style="margin:0 0 14px;font-size:13px;line-height:1.55">Aynı sekmede altta: her satırda <b>hangi öğretmen hangi dersten kaç saat girecek</b>? Örn. "Matematik / Selin Aksoy / 18 saat". "Otomatik Dağıt" bu plana göre 5 güne dağıtır.</p>
-
-    <h3 style="margin:0 0 8px;font-size:14px;color:#4f46e5">⑤ Öğretmen tanımı</h3>
-    <p style="margin:0 0 14px;font-size:13px;line-height:1.55"><b>Öğretmenler</b> sekmesi → ad, branş, çoklu kademe (9+11 gibi), haftalık saat, günlük dağılım (4,4,4,3,3). Branş yazınca otomatik ders kataloğuna eklenir.</p>
-
-    <h3 style="margin:0 0 8px;font-size:14px;color:#4f46e5">⑥ Ders Programı sekmesi</h3>
-    <p style="margin:0 0 14px;font-size:13px;line-height:1.55">Otomatik dağıtım sonrası tablo dolu gelir. Burada:</p>
-    <ul style="margin:0 0 14px;padding-left:20px;font-size:13px;line-height:1.7">
-      <li><b>Boş slot</b>: tıkla → yeni ders ekle</li>
-      <li><b>Hover ✕</b>: o saati kilitle (kırmızı çapraz görünür)</li>
-      <li><b>Sağ tık</b>: günü tamamen kapat/aç</li>
-      <li><b>Sürükle-bırak</b>: ders kartını başka hücreye taşı</li>
-      <li><b>Filtre</b> (sağ üst): tek öğretmeni görüntüle</li>
-    </ul>
-
-    <h3 style="margin:0 0 8px;font-size:14px;color:#4f46e5">⑦ Yedekleme</h3>
-    <p style="margin:0 0 14px;font-size:13px;line-height:1.55"><b>JSON Dışa Aktar</b> ile tüm verileri tek dosyada yedekleyebilir, <b>JSON İçe Aktar</b> ile geri yükleyebilirsiniz. <b>Excel Dışa Aktar</b> ile öğretmenleri, dersleri ve haftalık programı 3 ayrı çalışma sayfası halinde indirirsiniz. <b>Excel İçe Aktar</b> ile aynı şablondaki .xlsx dosyasını okuyabilirsiniz.</p>
-
-    <h3 style="margin:0 0 8px;font-size:14px;color:#4f46e5">⑧ İpuçları</h3>
-    <ul style="margin:0 0 0;padding-left:20px;font-size:13px;line-height:1.7">
-      <li>Bir öğretmeni silecekseniz önce ona ait dersleri silin veya başka öğretmene atayın</li>
-      <li>Veriler <code>localStorage</code>'da saklanır → tarayıcı verilerini silmeyin</li>
-      <li>Yazdır butonu A4 yatay çıktı verir</li>
-      <li>Bir hata olursa "Temizle" ile tüm verileri sıfırlayabilirsiniz</li>
-    </ul>
+  <div class="modal-head" style="padding:14px 18px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between">
+    <h2 style="margin:0;font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;flex:1">
+      <span style="display:inline-block;width:26px;height:26px;border-radius:7px;background:linear-gradient(95deg,#0ea5e9,#14b8a6);color:#fff;display:inline-flex;align-items:center;justify-content:center;flex:none">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="11" x2="12" y2="17"/><circle cx="12" cy="7.5" r="0.8" fill="currentColor" stroke="none"/></svg>
+      </span>
+      <span id="tutorialTitleText">ProgOto Turu</span>
+      <span id="tutorialStep" style="font-size:11px;color:#94a3b8;font-weight:500;margin-left:auto"></span>
+    </h2>
+    <button type="button" class="modal-close" id="tutorialCloseBtn" aria-label="Turu kapat">×</button>
   </div>
-  <div class="modal-actions">
-    <span></span>
-    <div class="right"><button class="btn primary" id="tutorialOkBtn">Anladım</button></div>
+  <div class="modal-body" style="padding:18px 20px">
+    <div id="tutorialContent" style="font-size:13.5px;line-height:1.6;color:#334155"></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid #f1f5f9">
+      <div id="tutorialDots" style="display:flex;gap:6px;flex:1"></div>
+      <button class="btn" id="tutorialSkipBtn" style="padding:6px 12px;font-size:12.5px">Atla</button>
+      <button class="btn primary" id="tutorialNextBtn" style="padding:6px 14px;font-size:12.5px">İleri →</button>
+    </div>
   </div>
 </dialog>
+
+<!-- Spotlight overlay (interaktif tutorial) -->
+<div id="tutorialSpot" style="position:fixed;inset:0;z-index:9998;pointer-events:none;display:none;transition:opacity .25s">
+  <div id="tutorialSpotBg" style="position:absolute;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(2px)"></div>
+  <div id="tutorialSpotBox" style="position:absolute;border:2.5px dashed #fff;border-radius:14px;box-shadow:0 0 0 9999px rgba(15,23,42,.55),0 0 0 1px rgba(99,102,241,.5);transition:all .35s cubic-bezier(.2,1,.4,1)"></div>
+</div>
 
 <dialog id="editDialog">
   <div class="modal-head"><h2>Ders</h2><button type="button" class="modal-close" id="closeBtn">×</button></div>
@@ -600,11 +595,157 @@ $('#importExcelFile2')?.addEventListener('change', e => { if (e.target.files[0])
 function setupImport(inpId){$('#'+inpId).addEventListener('change',e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{const data=JSON.parse(r.result);if(!data.teachers)throw new Error('bad');state={...structuredClone(DEFAULT_STATE),...data};saveState();renderAll();showToast('JSON yedeği yüklendi');}catch(err){showToast('Geçersiz yedek',true);}};r.readAsText(file);e.target.value='';});}
 setupImport('importFile');setupImport('importFile2');
 
-// Tutorial modalı — sadece ⓘ butonuna tıklayınca açılır
-$('#tutorialBtn').addEventListener('click', () => $('#tutorialDialog').showModal());
-$('#tutorialCloseBtn').addEventListener('click', () => $('#tutorialDialog').close());
-$('#tutorialOkBtn').addEventListener('click', () => $('#tutorialDialog').close());
-$('#tutorialDialog').addEventListener('click', e => { if (e.target === $('#tutorialDialog')) $('#tutorialDialog').close(); });
+// ============== İNTERAKTİF TUTORIAL ==============
+const TUTORIAL_STEPS = [
+  {
+    title: 'Hoş geldin! 👋',
+    tab: null,
+    body: '<h3>ProgOto Turu</h3><p>ProgOto, okulunuzdaki haftalık ders programını birkaç dakikada oluşturmanı sağlar. 6 kısa adımda her şeyi göstereceğim. <b>İleri</b> ile devam et, <b>Atla</b> ile istediğin zaman kapatabilirsin.</p><p style="color:#64748b;font-size:12px">Verilerin tarayıcında saklanır, internet gerekmez.</p>'
+  },
+  {
+    title: 'Üst menü',
+    tab: null,
+    sel: 'header',
+    body: '<h3>① Üst menü</h3><p>Buradan şunları yapabilirsin:</p><ul><li><kbd>ⓘ</kbd> Bu kılavuz</li><li><kbd>⚙</kbd> Zaman ayarları (ders süresi, teneffüs, haftanın gün sayısı)</li><li><b>JSON Dışa/İçe Aktar</b> tüm verileri yedekler</li><li><b>📊 Excel</b> programı çok sayfalı .xlsx olarak indirir</li><li><b>Yazdır</b> A4 çıktı, <b>Temizle</b> sıfırlama</li></ul>'
+  },
+  {
+    title: 'Zaman',
+    tab: 'settings2',
+    sel: '#tab-settings2',
+    body: '<h3>② Zaman ayarları</h3><p><b>Zaman</b> sekmesinden ilk ders saatini, ders süresini, teneffüsü ve her gün için ayrı ders saati sayısını ayarla. Örn. Pazartesi 8, Salı 7, Çarşamba 6 saat.</p><p style="color:#64748b;font-size:12px">Ayarları değiştirdiğinde tablolar yeni boyuta geçer.</p>'
+  },
+  {
+    title: 'Dersler',
+    tab: 'subjects',
+    sel: '#tab-subjects',
+    body: '<h3>③ Dersler kataloğu + Plan</h3><p>Önce dersleri ekle (Matematik, Türk Dili vb.). Sonra her öğretmenin <b>hangi dersten kaç saat</b> gireceğini satır satır seç. "⚡ Otomatik Dağıt" butonu tüm planı 5 güne yayar.</p>'
+  },
+  {
+    title: 'Öğretmenler',
+    tab: 'teachers',
+    sel: '#tab-teachers',
+    body: '<h3>④ Öğretmenler</h3><p>Öğretmen ekle: ad, branş, çoklu kademe (9 + 11), haftalık saat ve günlük dağılım (4,4,4,3,3). Branş yazınca otomatik ders kataloğuna eklenir.</p>'
+  },
+  {
+    title: 'Sınıflar & Atama',
+    tab: 'classes',
+    sel: '#tab-classes',
+    body: '<h3>⑤ Sınıflar &amp; Atama</h3><p>Her sınıf için haftalık hedef saat gir (örn. 40). "Öğretmen → Sınıf Ataması" tablosu opsiyoneldir; doldurursan dağıtım motoru ona göre çalışır.</p>'
+  },
+  {
+    title: 'Ders Programı',
+    tab: 'program',
+    sel: '#tab-program',
+    body: '<h3>⑥ Ders Programı</h3><p>Otomatik dağıtım sonrası tablo dolu gelir. İpuçları:</p><ul><li><b>Boş slot</b>: tıkla → yeni ders ekle</li><li><b>Hover ✕</b>: saati kilitle (kırmızı çapraz)</li><li><b>Sağ tık</b>: günü kapat/aç</li><li><b>Sürükle-bırak</b>: ders kartını taşı</li><li><b>Filtre</b> (sağ üst): tek öğretmeni gör</li></ul>'
+  },
+  {
+    title: 'Bitti! Hazırsın 🎉',
+    tab: 'subjects',
+    body: '<h3>Yolun açık olsun!</h3><p>Artık kendi programını oluşturabilirsin. Takıldığın yerde bu <kbd>ⓘ</kbd> butonuna tekrar tıkla.</p><p style="color:#64748b;font-size:12px">İpucu: Veriler <code>localStorage</code>\'da saklanır, düzenli JSON yedeği almayı unutma.</p>'
+  }
+];
+
+let tutorialIdx = 0;
+let tutorialStarted = false;
+
+function startTutorial() {
+  tutorialIdx = 0;
+  tutorialStarted = true;
+  showTutorialStep();
+}
+
+function endTutorial() {
+  tutorialStarted = false;
+  $('#tutorialDialog').close();
+  $('#tutorialSpot').style.display = 'none';
+  $$('.tut-highlight').forEach(el => el.classList.remove('tut-highlight'));
+}
+
+function showTutorialStep() {
+  const step = TUTORIAL_STEPS[tutorialIdx];
+  if (!step) return endTutorial();
+
+  // Spotlight overlay hedef
+  const spot = $('#tutorialSpot');
+  const box = $('#tutorialSpotBox');
+  if (step.sel) {
+    const target = $(step.sel);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      spot.style.display = 'block';
+      setTimeout(() => positionSpotlight(target, box), 100);
+    } else {
+      spot.style.display = 'none';
+    }
+  } else {
+    spot.style.display = 'none';
+  }
+
+  // Sekmeye geç
+  if (step.tab) {
+    const tabBtn = document.querySelector(`.tabs button[data-tab="${step.tab}"]`);
+    if (tabBtn) tabBtn.click();
+  }
+
+  // Modal içeriği
+  $('#tutorialContent').innerHTML = step.body;
+  $('#tutorialTitleText').textContent = 'ProgOto Turu · ' + step.title;
+  $('#tutorialStep').textContent = (tutorialIdx + 1) + ' / ' + TUTORIAL_STEPS.length;
+
+  // Noktalar
+  const dots = $('#tutorialDots');
+  dots.innerHTML = TUTORIAL_STEPS.map((_, i) => {
+    let cls = 'tut-dot';
+    if (i === tutorialIdx) cls += ' active';
+    else if (i < tutorialIdx) cls += ' done';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+
+  // Buton metni
+  const nextBtn = $('#tutorialNextBtn');
+  if (tutorialIdx === TUTORIAL_STEPS.length - 1) {
+    nextBtn.textContent = 'Tamam ✓';
+  } else {
+    nextBtn.textContent = 'İleri →';
+  }
+
+  // Spotlight highlight class'ı ekle
+  $$('.tut-highlight').forEach(el => el.classList.remove('tut-highlight'));
+  if (step.sel) {
+    const target = $(step.sel);
+    if (target) target.classList.add('tut-highlight');
+  }
+
+  // Modalı göster (henüz gösterilmediyse)
+  if (!$('#tutorialDialog').open) $('#tutorialDialog').showModal();
+}
+
+function positionSpotlight(target, box) {
+  const r = target.getBoundingClientRect();
+  const pad = 8;
+  box.style.top = (r.top - pad) + 'px';
+  box.style.left = (r.left - pad) + 'px';
+  box.style.width = (r.width + pad * 2) + 'px';
+  box.style.height = (r.height + pad * 2) + 'px';
+}
+
+$('#tutorialBtn').addEventListener('click', () => { startTutorial(); });
+$('#tutorialCloseBtn').addEventListener('click', endTutorial);
+$('#tutorialSkipBtn').addEventListener('click', endTutorial);
+$('#tutorialNextBtn').addEventListener('click', () => {
+  tutorialIdx++;
+  if (tutorialIdx >= TUTORIAL_STEPS.length) endTutorial();
+  else showTutorialStep();
+});
+$('#tutorialDialog').addEventListener('click', e => { if (e.target === $('#tutorialDialog')) endTutorial(); });
+window.addEventListener('resize', () => {
+  if (!tutorialStarted) return;
+  const step = TUTORIAL_STEPS[tutorialIdx];
+  if (step && step.sel) {
+    const target = $(step.sel);
+    if (target) positionSpotlight(target, $('#tutorialSpotBox'));
+  }
+});
 $('#printBtn').addEventListener('click',()=>window.print());
 $('#clearBtn').addEventListener('click',e=>{const btn=e.currentTarget;if(!btn.classList.contains('armed')){btn.classList.add('armed');btn.textContent='Emin misin?';setTimeout(()=>{btn.classList.remove('armed');btn.textContent='Temizle';},3000);return;}lessons=[];state.cellBlocked={};state.dayBlocked={};saveState();renderAll();showToast('Temizlendi');});
 $('#settingsBtn').addEventListener('click',()=>$('#settingsDialog')?.showModal());
