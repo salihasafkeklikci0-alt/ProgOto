@@ -1,0 +1,7 @@
+_*.js
+_*.json
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
